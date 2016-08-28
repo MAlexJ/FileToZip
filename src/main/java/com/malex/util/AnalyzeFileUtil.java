@@ -1,6 +1,7 @@
 package com.malex.util;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,18 +40,6 @@ public class AnalyzeFileUtil {
         }
     }
 
-    public static void main(String[] args) {
-        analyze("log/");
-        System.out.println();
-
-        Date dateCreateFile = getDateModifiedOrCreateFile("log/");
-        System.out.println(dateCreateFile);
-        System.out.println();
-
-        boolean flag = checkFileCreatedOrModifyToday("/log");
-        System.out.println("CheckFileCreatedOrModifyToday: "+flag);
-    }
-
     /**
      * Get date modified or crete the file.
      *
@@ -79,13 +68,38 @@ public class AnalyzeFileUtil {
      * @link http://stackoverflow.com/questions/32043644/how-to-compare-current-date-and-last-modified-date-in-android
      */
     public static boolean checkFileCreatedOrModifyToday(String pathToFile) {
-
         File file = new File(pathToFile);
-
-        long diff = (new Date().getTime() - new Date(file.lastModified()).getTime()) / 60 / 60 / 24;
-
-        return diff > 24;
+        Date date = new Date(file.lastModified());
+        return (new Date().getTime() - date.getTime()) <= TIME_FULL_DAY;
     }
+
+
+    /**
+     * Get list of files
+     *
+     * @param pathToFile the path to file
+     * @link http://stackoverflow.com/questions/15132693/java-check-file-name-against-current-date
+     */
+    public static File[] getListFiles(String pathToFile) {
+        File dir = new File(pathToFile);
+        return dir.listFiles(new CurrentDayFileFilter());
+    }
+
+    /**
+     *
+     */
+    private static class CurrentDayFileFilter implements FileFilter {
+        public boolean accept(File f) {
+            Date date = new Date(f.lastModified());
+            return System.currentTimeMillis() - date.getTime() <= TIME_FULL_DAY;
+        }
+    }
+
+    /**
+     * The time of full day.
+     * 24 Hour, 60 Seconds, 60 Minutes and 1000 Milliseconds.
+     */
+    private final static int TIME_FULL_DAY = 24 * 60 * 60 * 1000;
 
 
 }
